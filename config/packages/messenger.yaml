@@ -1,0 +1,33 @@
+framework:
+    messenger:
+        # Two buses: command bus (sync) and event bus (async)
+        default_bus: messenger.bus.commands
+
+        buses:
+            messenger.bus.commands:
+                middleware:
+                    - validation
+            messenger.bus.events:
+                default_middleware: allow_no_handlers
+
+        transports:
+            # Async transport backed by Redis Streams
+            async:
+                dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+                options:
+                    stream: dashboard_events
+                    group:  dashboard_workers
+                retry_strategy:
+                    max_retries: 3
+                    delay: 1000
+                    multiplier: 2
+
+            # Sync transport for tests / fallback
+            sync: 'sync://'
+
+        routing:
+            # Commands go to command bus (handled synchronously in web request)
+            'App\Dashboard\Application\Command\CreateSiteRecord\CreateSiteRecordCommand': async
+
+            # Domain events go to async transport (processed by worker)
+            'App\Dashboard\Domain\Event\SiteRecordCreated': async

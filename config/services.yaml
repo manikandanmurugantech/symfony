@@ -1,0 +1,76 @@
+parameters:
+    dashboard_cache_ttl: '%env(int:DASHBOARD_CACHE_TTL)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+
+    # -------------------------------------------------------------------------
+    # Infrastructure — Persistence
+    # -------------------------------------------------------------------------
+    App\Dashboard\Infrastructure\Persistence\Doctrine\DoctrineOrmSiteRecordRepository:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+
+    App\Dashboard\Infrastructure\Persistence\ReadModel\DoctrineDashboardReadModelRepository:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+
+    # -------------------------------------------------------------------------
+    # Infrastructure — Cache
+    # -------------------------------------------------------------------------
+    App\Dashboard\Infrastructure\Cache\CachedDashboardReadModelRepository:
+        arguments:
+            $inner: '@App\Dashboard\Infrastructure\Persistence\ReadModel\DoctrineDashboardReadModelRepository'
+            $cache: '@dashboard.cache'
+            $ttl:   '%dashboard_cache_ttl%'
+
+    # -------------------------------------------------------------------------
+    # Port → Adapter bindings
+    # Anywhere the domain/application layer asks for the interface,
+    # inject the cached decorator (which wraps the real repository).
+    # -------------------------------------------------------------------------
+    App\Dashboard\Domain\Repository\SiteRecordRepositoryInterface:
+        alias: App\Dashboard\Infrastructure\Persistence\Doctrine\DoctrineOrmSiteRecordRepository
+
+    App\Dashboard\Application\Query\GetDashboard\DashboardReadModelRepositoryInterface:
+        alias: App\Dashboard\Infrastructure\Cache\CachedDashboardReadModelRepository
+
+    # -------------------------------------------------------------------------
+    # Logging — dedicated performance channel
+    # -------------------------------------------------------------------------
+    App\Dashboard\Infrastructure\Logging\PerformanceLogger:
+        arguments:
+            $logger: '@monolog.logger.performance'
+
+    # -------------------------------------------------------------------------
+    # Message buses
+    # -------------------------------------------------------------------------
+    App\Dashboard\Application\Query\GetDashboard\GetDashboardHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.commands }
+
+    App\Dashboard\Application\Command\CreateSiteRecord\CreateSiteRecordHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.commands }
+
+    App\Dashboard\Application\EventHandler\UpdateDashboardProjectionHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.events }
+
+    # -------------------------------------------------------------------------
+    # Console
+    # -------------------------------------------------------------------------
+    App\UI\Console\SeedDashboardCommand:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+        tags:
+            - { name: console.command }

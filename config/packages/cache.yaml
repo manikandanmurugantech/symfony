@@ -1,0 +1,13 @@
+framework:
+    cache:
+        # Default cache adapter — Redis in prod, array in test
+        app: cache.adapter.redis
+        default_redis_provider: '%env(REDIS_URL)%'
+
+        pools:
+            # Named pool for dashboard read model caching
+            dashboard.cache:
+                adapter: cache.adapter.redis
+                provider: '%env(REDIS_URL)%'
+                default_lifetime: '%env(int:DASHBOARD_CACHE_TTL)%'
+                tags: true   # Enables TagAwareAdapter for grouped invalidation
