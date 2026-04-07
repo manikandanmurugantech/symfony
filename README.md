@@ -219,18 +219,24 @@ make start-worker  # Start async worker
 ```bash
 # Basic paginated list
 curl "http://localhost:8000/api/dashboard"
+![Sample Output](image-1.png)
 
 # Page 2, 100 records per page
 curl "http://localhost:8000/api/dashboard?page=2&limit=100"
+![Sample Output](image-2.png)
 
 # Filter by status code and country
 curl "http://localhost:8000/api/dashboard?status_code=200&country=IN"
+![Sample Output](image-3.png)
 
 # Search by URL pattern
 curl "http://localhost:8000/api/dashboard?url=/api"
+![Sample Output](image-4.png)
 
 # Sort by response time ascending
 curl "http://localhost:8000/api/dashboard?sort_by=response_time_ms&sort_dir=ASC"
+![Sample Output](image-5.png)
+
 ```
 
 ### Sample Response
