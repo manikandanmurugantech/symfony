@@ -60,7 +60,18 @@ php bin/console messenger:consume async -vv
 
 ## ⚙️ Setup Instructions
 
-### 🔹 1. Start Services
+### 🔹 1. Clone Repository:
+
+git clone https://github.com/manikandanmurugantech/symfony.git
+
+cd symfony
+git checkout dev
+
+NOTE: Use the dev branch. The master branch is backup code.
+
+
+
+### 🔹 2. Start Services
 
 ```bash
 docker compose up -d
@@ -68,7 +79,7 @@ docker compose up -d
 
 ---
 
-### 🔹 2. Install Dependencies
+### 🔹 3. Install Dependencies
 
 ```bash
 composer install
@@ -76,7 +87,7 @@ composer install
 
 ---
 
-### 🔹 3. Configure Environment
+### 🔹 4. Configure Environment
 
 Ensure `.env` contains:
 
@@ -88,7 +99,7 @@ MESSENGER_TRANSPORT_DSN=redis://localhost:6379/messages
 
 ---
 
-### 🔹 4. Run Database Migration
+### 🔹 5. Run Database Migration
 
 ```bash
 docker exec -i dashboard-project-postgres-1 \
@@ -98,7 +109,7 @@ psql -U dashboard -d dashboard \
 
 ---
 
-### 🔹 5. Seed Data (100,000 records)
+### 🔹 6. Seed Data (100,000 records)
 
 ```bash
 php bin/console dashboard:seed
@@ -106,17 +117,15 @@ php bin/console dashboard:seed
 
 ---
 
-### 🔹 6. Start Application
+### 🔹 7. Start Application
 
 ```bash
 php -S localhost:8000 -t public/  
-OR
-symfony serve
 ```
 
 ---
 
-### 🔹 7. Start Async Worker
+### 🔹 8. Start Async Worker
 
 ```bash
 php bin/console messenger:consume async -vv
