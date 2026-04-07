@@ -109,6 +109,8 @@ php bin/console dashboard:seed
 ### 🔹 6. Start Application
 
 ```bash
+php -S localhost:8000 -t public/  
+OR
 symfony serve
 ```
 
