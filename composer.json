@@ -1,0 +1,64 @@
+{
+    "name": "citiustech/dashboard",
+    "description": "Dashboard with DDD, CQRS, Event-Driven Architecture",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "ext-redis": "*",
+        "doctrine/doctrine-bundle": "^2.11",
+        "doctrine/doctrine-migrations-bundle": "^3.3",
+        "doctrine/orm": "^3.0",
+        "symfony/cache": "^7.0",
+        "symfony/console": "^7.0",
+        "symfony/dotenv": "^7.0",
+        "symfony/flex": "^2",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/messenger": "^7.0",
+        "symfony/monolog-bundle": "^3.10",
+        "symfony/property-access": "^7.0",
+        "symfony/redis-messenger": "7.*",
+        "symfony/runtime": "7.*",
+        "symfony/serializer": "^7.0",
+        "symfony/uid": "^7.0",
+        "symfony/validator": "7.*",
+        "symfony/yaml": "7.*"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.10",
+        "phpunit/phpunit": "^11.0",
+        "symfony/browser-kit": "7.*",
+        "symfony/css-selector": "7.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install %PUBLIC_DIR%": "symfony-cmd"
+        },
+        "post-install-cmd": ["@auto-scripts"],
+        "post-update-cmd": ["@auto-scripts"]
+    },
+    "config": {
+        "allow-plugins": {
+            "symfony/flex": true,
+            "symfony/runtime": true
+        },
+        "sort-packages": true
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "7.*"
+        }
+    }
+}

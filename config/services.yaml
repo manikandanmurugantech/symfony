@@ -1,0 +1,73 @@
+parameters:
+    dashboard_cache_ttl: '%env(int:DASHBOARD_CACHE_TTL)%'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+
+    # Persistence — write side
+    App\Dashboard\Infrastructure\Persistence\Doctrine\DoctrineOrmSiteRecordRepository:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+
+    App\Dashboard\Infrastructure\Persistence\ReadModel\DoctrineDashboardReadModelRepository:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+
+    # Cache — inject the tag-aware dashboard pool, not the default app pool
+    App\Dashboard\Infrastructure\Cache\CachedDashboardReadModelRepository:
+        arguments:
+            $inner:  '@App\Dashboard\Infrastructure\Persistence\ReadModel\DoctrineDashboardReadModelRepository'
+            $cache:  '@dashboard.cache'
+            $ttl:    '%dashboard_cache_ttl%'
+
+    App\Dashboard\Infrastructure\Cache\DashboardCacheInvalidator:
+        arguments:
+            $cache:  '@dashboard.cache'
+
+    # Port → Adapter bindings
+    App\Dashboard\Domain\Repository\SiteRecordRepositoryInterface:
+        alias: App\Dashboard\Infrastructure\Persistence\Doctrine\DoctrineOrmSiteRecordRepository
+
+    App\Dashboard\Application\Query\GetDashboard\DashboardReadModelRepositoryInterface:
+        alias: App\Dashboard\Infrastructure\Cache\CachedDashboardReadModelRepository
+
+    # Logging — performance channel
+    App\Dashboard\Infrastructure\Logging\PerformanceLogger:
+        arguments:
+            $logger: '@monolog.logger.performance'
+
+    # Monitoring hook — fires on every kernel.terminate event
+    App\Dashboard\Infrastructure\Logging\RequestPerformanceListener:
+        arguments:
+            $logger: '@monolog.logger.performance'
+        tags:
+            - { name: kernel.event_listener, event: kernel.terminate }
+
+    # Message bus handlers
+    App\Dashboard\Application\Query\GetDashboard\GetDashboardHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.commands }
+
+    App\Dashboard\Application\Command\CreateSiteRecord\CreateSiteRecordHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.commands }
+
+    App\Dashboard\Application\EventHandler\UpdateDashboardProjectionHandler:
+        tags:
+            - { name: messenger.message_handler, bus: messenger.bus.events }
+
+    # Console
+    App\UI\Console\SeedDashboardCommand:
+        arguments:
+            $connection: '@doctrine.dbal.default_connection'
+        tags:
+            - { name: console.command }
